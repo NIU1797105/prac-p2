@@ -15,6 +15,9 @@
 const int DEFAULT_BOARD_WIDTH = 10;
 const int DEFAULT_BOARD_HEIGHT = 10;
 
+const int MAX_BOARD_WIDTH = 10;
+const int MAX_BOARD_HEIGHT = 10;
+
 /// Number of candy pieces of the same type needed to explode a horizontal, vertical or diagonal line
 const int SHORTEST_EXPLOSION_LINE = 3;
 
@@ -30,7 +33,7 @@ public:
     /// Free all resources managed by the board
     ~Board();
 
-    /**
+    /** TODO
      * Determine whether the candy at the given coordinates should explode
      * given the current board state, i.e., is part of a (h/v/d) line of SHORTEST_EXPLOSION_LINE or more candies of the same type.
      * @param x 0-indexed, left to right, x coordinate of the cell
@@ -39,7 +42,7 @@ public:
      */
     bool shouldExplode(int x, int y) const;
 
-    /**
+    /** TODO
      * Explode all candies that should explode (lines of candies)
      * and then let candies above drop down to fill the gaps.
      * After dropping, repeat until no more candies can explode.
@@ -47,7 +50,7 @@ public:
      */
     std::vector<Candy*> explodeAndDrop();
 
-    /**
+    /** TODO
      * Save a serialized representation of the board to a file, which can be later loaded
      * with Board::load.
      * @param output_path path to the output file where the representation is to be saved.
@@ -55,7 +58,7 @@ public:
      */
     bool dump(const std::string& output_path) const;
 
-    /**
+    /** TODO
      * Load a serialized representation of the board from a file previously saved.
      * Any existing board state is discarded.
      * @param input_path path to the input file from which the representation is to be loaded.
@@ -63,7 +66,7 @@ public:
      */
     bool load(const std::string& input_path);
 
-    /**
+    /** 
      * Get a reference to the candy piece at the given coordinates if there is one. 
      * 
      * @param x 0-indexed, left to right, x coordinate of the cell
@@ -88,8 +91,10 @@ public:
     int getHeight() const;
 
 private:
-
     /// Students can add as many protected methods and attributes as needed.
+    int m_height;
+    int m_width;
+    Candy* grid[MAX_BOARD_HEIGHT][MAX_BOARD_WIDTH];
 };
 
 #endif

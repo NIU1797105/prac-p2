@@ -4,7 +4,15 @@
 
 Board::Board(int width, int height)
 {
-    // Implement your code here
+    m_width = width; // columnas
+    m_height = height; // filas
+    for (int i = 0; i < m_height; i++)
+    {
+        for (int j = 0; j < m_width; j++)
+        {
+            grid[i][j] = nullptr;
+        }
+    }
 }
 
 Board::~Board()
@@ -15,27 +23,27 @@ Board::~Board()
 
 Candy* Board::getCell(int x, int y) const
 {
-    // Implement your code here
+    if ((x >= 0 && x < m_width) && (y >= 0 && y < m_height))
+        return grid[y][x];
     return nullptr;
 }
 
 void Board::setCell(Candy* candy, int x, int y)
 {
-    // Implement your code here
+    if ((x >= 0 && x < m_width) && (y >= 0 && y < m_height))
+        grid[y][x] = candy;
 }
 
 
 int Board::getWidth() const
 {
-    // Implement your code here
-    return -1;
+    return m_width;
 }
 
 
 int Board::getHeight() const
 {
-    // Implement your code here
-    return -1;
+    return m_height;
 }
 
 bool Board::shouldExplode(int x, int y) const
