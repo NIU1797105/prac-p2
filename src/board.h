@@ -90,6 +90,8 @@ public:
     /// Get the board height
     int getHeight() const;
 
+    bool searchCandy(int x, int y, int& count, int difX, int difY, CandyType actualType) const;
+
 private:
     /// Students can add as many protected methods and attributes as needed.
     int m_height;
