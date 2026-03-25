@@ -2,3 +2,4 @@
 bool test();
 bool constructorTest();
 bool shouldExplodeTest();
+bool explodeAndDropTest();

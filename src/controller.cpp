@@ -1,6 +1,7 @@
 #include "controller.h"
 #include "keyboard.h"
 #include "mouse.h"
+
 #include <cstring>
 
 Controller::Controller()
@@ -15,16 +16,16 @@ Controller::Controller()
     m_frame = 0;
 
     // Keyboard mapping defaults
-    m_map[UP] = KEYBOARD_UP;
-    m_map[DOWN] = KEYBOARD_DOWN;
-    m_map[LEFT] = KEYBOARD_LEFT;
+    m_map[UP]    = KEYBOARD_UP;
+    m_map[DOWN]  = KEYBOARD_DOWN;
+    m_map[LEFT]  = KEYBOARD_LEFT;
     m_map[RIGHT] = KEYBOARD_RIGHT;
-    m_map[KEY1] = KEYBOARD_Q;
-    m_map[KEY2] = KEYBOARD_W;
-    m_map[KEY3] = KEYBOARD_E;
+    m_map[KEY1]  = KEYBOARD_Q;
+    m_map[KEY2]  = KEYBOARD_W;
+    m_map[KEY3]  = KEYBOARD_E;
 
     // Mouse mappings are unused for keyboard-based mapping API, initialize defensively
-    m_map[MOUSE_LEFT] = -1;
+    m_map[MOUSE_LEFT]  = -1;
     m_map[MOUSE_RIGHT] = -1;
 
     // initialize mouse coords
@@ -43,19 +44,19 @@ void Controller::update()
         bool raw = false;
         switch (i)
         {
-        case MOUSE_LEFT:
-            raw = (Mouse_getBtnLeft() != 0);
-            break;
-        case MOUSE_RIGHT:
+            case MOUSE_LEFT:
+                raw = (Mouse_getBtnLeft() != 0);
+                break;
+            case MOUSE_RIGHT:
             {
-                int mx, my;
+                int    mx, my;
                 Uint32 mask = SDL_GetMouseState(&mx, &my);
-                raw = (mask & SDL_BUTTON(BUTTON_RIGHT)) != 0;
+                raw         = (mask & SDL_BUTTON(3)) != 0;
                 break;
             }
-        default:
-            raw = (Keyboard_GetKeyCnt(m_map[i]) != 0);
-            break;
+            default:
+                raw = (Keyboard_GetKeyCnt(m_map[i]) != 0);
+                break;
         }
         // m_pressed should be true only on the first frame the button becomes pressed
         m_pressed[i] = (raw && !m_rawPrevious[i]);
@@ -69,18 +70,51 @@ void Controller::update()
     mouseY = Mouse_getY();
 }
 
-bool Controller::isUpPressed() const { return m_pressed[UP]; }
-bool Controller::isDownPressed() const { return m_pressed[DOWN]; }
-bool Controller::isLeftPressed() const { return m_pressed[LEFT]; }
-bool Controller::isRightPressed() const { return m_pressed[RIGHT]; }
-bool Controller::isKey1Pressed() const { return m_pressed[KEY1]; }
-bool Controller::isKey2Pressed() const { return m_pressed[KEY2]; }
-bool Controller::isKey3Pressed() const { return m_pressed[KEY3]; }
+bool Controller::isUpPressed() const
+{
+    return m_pressed[UP];
+}
+bool Controller::isDownPressed() const
+{
+    return m_pressed[DOWN];
+}
+bool Controller::isLeftPressed() const
+{
+    return m_pressed[LEFT];
+}
+bool Controller::isRightPressed() const
+{
+    return m_pressed[RIGHT];
+}
+bool Controller::isKey1Pressed() const
+{
+    return m_pressed[KEY1];
+}
+bool Controller::isKey2Pressed() const
+{
+    return m_pressed[KEY2];
+}
+bool Controller::isKey3Pressed() const
+{
+    return m_pressed[KEY3];
+}
 
-int Controller::getMouseX() const { return mouseX; }
-int Controller::getMouseY() const { return mouseY; }
-bool Controller::isMouseLeftPressed() const { return m_pressed[MOUSE_LEFT]; }
-bool Controller::isMouseRightPressed() const { return m_pressed[MOUSE_RIGHT]; }
+int Controller::getMouseX() const
+{
+    return mouseX;
+}
+int Controller::getMouseY() const
+{
+    return mouseY;
+}
+bool Controller::isMouseLeftPressed() const
+{
+    return m_pressed[MOUSE_LEFT];
+}
+bool Controller::isMouseRightPressed() const
+{
+    return m_pressed[MOUSE_RIGHT];
+}
 
 void Controller::setMapping(int index, int keycode)
 {

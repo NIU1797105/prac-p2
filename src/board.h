@@ -5,20 +5,21 @@
 #define BOARD_H
 
 /// Imports can be added as needed.
+#include "candy.h"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "candy.h"
-
 /// Default board dimensions
-const int DEFAULT_BOARD_WIDTH = 10;
+const int DEFAULT_BOARD_WIDTH  = 10;
 const int DEFAULT_BOARD_HEIGHT = 10;
 
-const int MAX_BOARD_WIDTH = 10;
+const int MAX_BOARD_WIDTH  = 10;
 const int MAX_BOARD_HEIGHT = 10;
 
-/// Number of candy pieces of the same type needed to explode a horizontal, vertical or diagonal line
+/// Number of candy pieces of the same type needed to explode a horizontal, vertical or diagonal
+/// line
 const int SHORTEST_EXPLOSION_LINE = 3;
 
 /**
@@ -26,7 +27,7 @@ const int SHORTEST_EXPLOSION_LINE = 3;
  */
 class Board
 {
-public:
+  public:
     /// Initialize a board of the given dimensions.
     Board(int width = DEFAULT_BOARD_WIDTH, int height = DEFAULT_BOARD_HEIGHT);
 
@@ -35,7 +36,8 @@ public:
 
     /** TODO
      * Determine whether the candy at the given coordinates should explode
-     * given the current board state, i.e., is part of a (h/v/d) line of SHORTEST_EXPLOSION_LINE or more candies of the same type.
+     * given the current board state, i.e., is part of a (h/v/d) line of SHORTEST_EXPLOSION_LINE or
+     * more candies of the same type.
      * @param x 0-indexed, left to right, x coordinate of the cell
      * @param y 0-indexed, top to bottom, y coordinate of the cell
      * @return true if the candy at the given coordinates should explode, false otherwise.
@@ -66,12 +68,12 @@ public:
      */
     bool load(const std::string& input_path);
 
-    /** 
-     * Get a reference to the candy piece at the given coordinates if there is one. 
-     * 
+    /**
+     * Get a reference to the candy piece at the given coordinates if there is one.
+     *
      * @param x 0-indexed, left to right, x coordinate of the cell
      * @param y 0-indexed, top to bottom, y coordinate of the cell
-     * @return a pointer to the candy at the given coordinates, 
+     * @return a pointer to the candy at the given coordinates,
      *   if the coordinates are valid and the cell is not empty; nullptr otherwise.
      */
     Candy* getCell(int x, int y) const;
@@ -92,11 +94,11 @@ public:
 
     bool searchCandy(int x, int y, int& count, int difX, int difY, CandyType actualType) const;
 
-private:
+  private:
     /// Students can add as many protected methods and attributes as needed.
-    int m_height;
-    int m_width;
-    Candy* grid[MAX_BOARD_HEIGHT][MAX_BOARD_WIDTH];
+    int    m_height;
+    int    m_width;
+    Candy* m_grid[MAX_BOARD_HEIGHT][MAX_BOARD_WIDTH];
 };
 
 #endif

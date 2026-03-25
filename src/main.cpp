@@ -1,7 +1,8 @@
 /// Project entry point
-#include <iostream>
-#include "game.h"
 #include "../test/test.h"
+#include "game.h"
+
+#include <iostream>
 
 int main(int argc, const char* argv[])
 {
@@ -21,8 +22,6 @@ int main(int argc, const char* argv[])
     {
         std::cout << "Test superados." << std::endl;
     }
-    
-    
 
     // The following code runs the graphic part
     Game game;

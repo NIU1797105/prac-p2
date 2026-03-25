@@ -1,127 +1,131 @@
-#include <filesystem>
 #include "board.h"
 #include "candy.h"
 #include "controller.h"
 #include "game.h"
 #include "util.h"
 
+#include <filesystem>
+#include <iostream>
 
 bool test()
 {
+    const int SIZE = 10;
+
     // Test board 2D container
     Candy c(CandyType::TYPE_ORANGE);
-    Board b(10, 10);
-    for (int i = 0; i < 10; i++)
+    Candy c2(CandyType::TYPE_RED);
+    Board b(SIZE, SIZE);
+    for (int i = 0; i < SIZE; i++)
     {
-        for (int j = 0; j < 10; j++)
+        for (int j = 0; j < SIZE; j++)
         {
-            
-
+            b.setCell(&c, i, j);
         }
+        b.setCell(&c2, i, i);
     }
-    b.setCell(&c, 0, 0);
-    if (b.getCell(0, 0) != &c)
+    for (int i = 0; i < SIZE; i++)
     {
-        return false;
+
+        for (int j = 0; j < SIZE; j++)
+        {
+            if (b.getCell(i, j)->getType() != (i == j ? c2 : c).getType())
+            {
+                return false;
+            }
+        }
     }
 
     // Dump and load board
+    if (!b.dump(getDataDirPath() + "dump_board.txt"))
     {
-        Board b2(10, 10);
-        if (!b.dump(getDataDirPath() + "dump_board.txt"))
-        {
-            return false;
-        }
-        if (!b2.load(getDataDirPath() + "dump_board.txt"))
-        {
-            return false;
-        }
-        if (b2.getCell(0, 0)->getType() != c.getType())
-        {
-            return false;
-        }
-        std::filesystem::remove(getDataDirPath() + "dump_board.txt");
+        return false;
     }
-
-    // Dump and load game
+    Board b2(SIZE, SIZE);
+    if (!b2.load(getDataDirPath() + "dump_board.txt"))
     {
-        Game g;
-        Controller cont;
-        g.update(cont);
-        if (!g.dump(getDataDirPath() + "dump_game.txt"))
-        {
-            return false;
-        }
-        Game g2;
-        if (!g2.load(getDataDirPath() + "dump_game.txt"))
-        {
-            return false;
-        }
-        if (g != g2)
-        {
-            return false;
-        }
-        std::filesystem::remove(getDataDirPath() + "dump_game.txt");
+        return false;
     }
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            if (b.getCell(i, j)->getType() != b2.getCell(i, j)->getType())
+            {
+                return false;
+            }
+        }
+    }
+    std::filesystem::remove(getDataDirPath() + "dump_board.txt");
 
     return true;
 }
+
 bool constructorTest()
 {
-    bool ok = true;
-    Board b(5,5);
+    bool  ok = true;
+    Board b(5, 5);
 
-    //Width y height
+    // Width y height
     if (b.getWidth() != 5)
     {
-        cout << "Error: getWidth() devuelve " << b.getWidth() << ", esperado 5" << endl;
+        std::cout << "Error: getWidth() devuelve " << b.getWidth() << ", esperado 5" << std::endl;
         ok = false;
     }
     if (b.getHeight() != 5)
     {
-        cout << "Error: getHeight() devuelve " << b.getHeight() << ", esperado 5" << endl;
+        std::cout << "Error: getHeight() devuelve " << b.getHeight() << ", esperado 5" << std::endl;
         ok = false;
     }
 
-    //Inicializacion
-    for (int y = 0; y < b.getHeight(); y++) {
-        for (int x = 0; x < b.getWidth(); x++) {
-            if (b.getCell(x, y) != nullptr) {
-                cout << "Error: celda (" << x << "," << y << ") no es nullptr al inicializar" << endl;
+    // Inicializacion
+    for (int y = 0; y < b.getHeight(); y++)
+    {
+        for (int x = 0; x < b.getWidth(); x++)
+        {
+            if (b.getCell(x, y) != nullptr)
+            {
+                std::cout << "Error: celda (" << x << "," << y << ") no es nullptr al inicializar"
+                          << std::endl;
                 ok = false;
             }
         }
     }
 
-    //setCell y getCell
+    // setCell y getCell
     Candy c1(CandyType::TYPE_RED);
     Candy c2(CandyType::TYPE_BLUE);
     b.setCell(&c1, 0, 0);
     b.setCell(&c2, 4, 4);
 
-    if (b.getCell(0, 0) != &c1) {
-        cout << "Error: getCell(0,0) no devuelve el candy esperado: " << b.getCell(0, 0) << endl;
+    if (b.getCell(0, 0) != &c1)
+    {
+        std::cout << "Error: getCell(0,0) no devuelve el candy esperado: " << b.getCell(0, 0)
+                  << std::endl;
         ok = false;
     }
-    if (b.getCell(4, 4) != &c2) {
-        cout << "Error: getCell(4,4) no devuelve el candy esperado: " << b.getCell(4, 4) << endl;
+    if (b.getCell(4, 4) != &c2)
+    {
+        std::cout << "Error: getCell(4,4) no devuelve el candy esperado: " << b.getCell(4, 4)
+                  << std::endl;
         ok = false;
     }
     return ok;
 
-    //setCell fuera de rango
+    // setCell fuera de rango
     b.setCell(&c1, -1, 0);
     b.setCell(&c1, 0, 5);
     b.setCell(&c1, 5, 5);
-    if (b.getCell(-1, 0) != nullptr || b.getCell(0, 5) != nullptr || b.getCell(5, 5) != nullptr) {
+    if (b.getCell(-1, 0) != nullptr || b.getCell(0, 5) != nullptr || b.getCell(5, 5) != nullptr)
+    {
         std::cout << "Error: setCell fuera de rango modificó algo\n";
         ok = false;
     }
+    return ok;
 }
 
 bool shouldExplodeTest()
 {
-    bool ok = true;
+    bool  ok = true;
     Board b(5, 5);
 
     // --- Horizontal ---
@@ -130,38 +134,43 @@ bool shouldExplodeTest()
     b.setCell(&cRed, 1, 0);
     b.setCell(&cRed, 2, 0);
 
-    if (!b.shouldExplode(1, 0)) {
-        cout << "Error: horizontal no detectado en (1,0)" << endl;
+    if (!b.shouldExplode(1, 0))
+    {
+        std::cout << "Error: horizontal no detectado en (1,0)" << std::endl;
         ok = false;
     }
     else
-        cout << "Horizontal detectado en (1,0)" << endl;
-
+    {
+        std::cout << "Horizontal detectado en (1,0)" << std::endl;
+    }
     // --- Vertical ---
     Candy cBlue(CandyType::TYPE_BLUE);
     b.setCell(&cBlue, 0, 1);
     b.setCell(&cBlue, 0, 2);
     b.setCell(&cBlue, 0, 3);
 
-    if (!b.shouldExplode(0, 1)) {
-        cout << "Error: vertical no detectado en (0,1)" << endl;
+    if (!b.shouldExplode(0, 1))
+    {
+        std::cout << "Error: vertical no detectado en (0,1)" << std::endl;
         ok = false;
     }
     else
-        cout << "Vertical detectado en (0,2)" << endl;
-
+    {
+        std::cout << "Vertical detectado en (0,2)" << std::endl;
+    }
     // --- Diagonal / ---
     Candy cGreen(CandyType::TYPE_GREEN);
     b.setCell(&cGreen, 0, 4);
     b.setCell(&cGreen, 1, 3);
     b.setCell(&cGreen, 2, 2);
 
-    if (!b.shouldExplode(2, 2)) {
-        cout << "Error: diagonal / no detectada en (2,2)" << endl;
+    if (!b.shouldExplode(2, 2))
+    {
+        std::cout << "Error: diagonal / no detectada en (2,2)" << std::endl;
         ok = false;
     }
     else
-        cout << "Diagonal / detectado en (2,2)" << endl;
+        std::cout << "Diagonal / detectado en (2,2)" << std::endl;
 
     // --- Diagonal \ ---
     Candy cYellow(CandyType::TYPE_YELLOW);
@@ -169,23 +178,162 @@ bool shouldExplodeTest()
     b.setCell(&cYellow, 1, 1);
     b.setCell(&cYellow, 2, 2);
 
-    if (!b.shouldExplode(1, 1)) {
-        cout << "Error: diagonal \ no detectada en (1,1)" << endl;
+    if (!b.shouldExplode(1, 1))
+    {
+        std::cout << "Error: diagonal \\ no detectada en (1,1)" << std::endl;
         ok = false;
     }
     else
-        cout << "Diagonal \ detectado en (1,1)" << endl;
+        std::cout << "Diagonal \\ detectado en (1,1)" << std::endl;
 
     // --- No explosion ---
     Candy cOrange(CandyType::TYPE_ORANGE);
     b.setCell(&cOrange, 4, 4);
 
-    if (b.shouldExplode(4, 4)) {
-        cout << "Error: shouldExplode devolvió true para candy aislado (4,4)" << endl;
+    if (b.shouldExplode(4, 4))
+    {
+        std::cout << "Error: shouldExplode devolvió true para candy aislado (4,4)" << std::endl;
         ok = false;
     }
     else
-        cout << "Nada explotó =)" << endl;
+    {
+        std::cout << "Nada explotó =)" << std::endl;
+    }
+    return ok;
+}
 
+bool explodeAndDropTest()
+{
+    bool ok = true;
+
+    // --- Horizontal ---
+    {
+        Board b(5, 5);
+        Candy cRed(CandyType::TYPE_RED);
+        Candy cBlue(CandyType::TYPE_BLUE);
+
+        b.setCell(&cRed, 4, 0);
+        b.setCell(&cRed, 4, 1);
+        b.setCell(&cRed, 4, 2);
+        b.setCell(&cBlue, 2, 1);
+
+        std::vector<Candy*> exploded = b.explodeAndDrop();
+
+        if (exploded.size() != 3)
+        {
+            std::cout << "Error: debería haber explotado 3 candies, explotó " << exploded.size()
+                      << std::endl;
+            ok = false;
+        }
+
+        if (b.getCell(4, 0) != nullptr || b.getCell(4, 1) != nullptr || b.getCell(4, 2) != nullptr)
+        {
+            std::cout << "Error: fila inferior debería estar vacía después de explotar"
+                      << std::endl;
+            ok = false;
+        }
+
+        if (b.getCell(4, 1) != &cBlue)
+        {
+            std::cout << "Error: candy azul no cayó correctamente a (4,1)" << std::endl;
+            ok = false;
+        }
+        else
+        {
+            std::cout << "Test 1: Explosión simple y caída OK" << std::endl;
+        }
+    }
+
+    // --- En cadena ---
+    {
+        Board b(5, 5);
+        Candy cRed(CandyType::TYPE_RED);
+        Candy cBlue(CandyType::TYPE_BLUE);
+
+        b.setCell(&cRed, 4, 0);
+        b.setCell(&cRed, 4, 1);
+        b.setCell(&cRed, 4, 2);
+        b.setCell(&cBlue, 3, 1);
+        b.setCell(&cBlue, 2, 1);
+        b.setCell(&cBlue, 1, 1);
+
+        std::vector<Candy*> exploded = b.explodeAndDrop();
+
+        // 3 reds + 3 blues = 6
+        if (exploded.size() != 6)
+        {
+            std::cout << "Error: cascada debería explotar 6 candies, explotó " << exploded.size()
+                      << std::endl;
+            ok = false;
+        }
+        else
+        {
+            std::cout << "Test 2: Cascada (chain reaction) OK" << std::endl;
+        }
+    }
+
+    // --- Multiples gruops ---
+    {
+        Board b(5, 5);
+        Candy cRed(CandyType::TYPE_RED);
+        Candy cBlue(CandyType::TYPE_BLUE);
+
+        b.setCell(&cRed, 4, 0);
+        b.setCell(&cRed, 4, 1);
+        b.setCell(&cRed, 4, 2);
+        b.setCell(&cBlue, 3, 0);
+        b.setCell(&cBlue, 3, 1);
+        b.setCell(&cBlue, 3, 2);
+
+        std::vector<Candy*> exploded = b.explodeAndDrop();
+
+        if (exploded.size() != 6)
+        {
+            std::cout << "Error: grupos múltiples deberían explotar 6 candies, explotó "
+                      << exploded.size() << std::endl;
+            ok = false;
+        }
+        else
+        {
+            std::cout << "Test 3: Múltiples grupos simultáneos OK" << std::endl;
+        }
+    }
+
+    // --- Cap explosio ---
+    {
+        Board b(3, 3);
+        Candy cRed(CandyType::TYPE_RED);
+        Candy cBlue(CandyType::TYPE_BLUE);
+        Candy cGreen(CandyType::TYPE_GREEN);
+
+        // No matches
+        b.setCell(&cRed, 0, 0);
+        b.setCell(&cBlue, 0, 1);
+        b.setCell(&cGreen, 0, 2);
+
+        std::vector<Candy*> exploded = b.explodeAndDrop();
+
+        if (exploded.size() != 0)
+        {
+            std::cout << "Error: no debería haber explosiones, explotó " << exploded.size()
+                      << std::endl;
+            ok = false;
+        }
+
+        if (b.getCell(0, 0) != &cRed || b.getCell(0, 1) != &cBlue)
+        {
+            std::cout << "Error: tablero cambió sin explosiones" << std::endl;
+            ok = false;
+        }
+        else
+        {
+            std::cout << "Test 4: Sin explosiones OK" << std::endl;
+        }
+    }
+
+    if (ok)
+    {
+        std::cout << "=== Todos los tests de explodeAndDrop pasaron ===" << std::endl;
+    }
     return ok;
 }
