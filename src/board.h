@@ -98,7 +98,7 @@ class Board
     /// Students can add as many protected methods and attributes as needed.
     int    m_height;
     int    m_width;
-    Candy* m_grid[MAX_BOARD_HEIGHT][MAX_BOARD_WIDTH];
+    Candy*** m_grid;
 };
 
 #endif

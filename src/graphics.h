@@ -90,8 +90,7 @@ private:
 
 // Implementation of the main graphic loop. No need to change anything here.
 template <typename GameClass>
-void runGraphicGame(GameClass& game, int screenWidth, int screenHeight,
-                    int bgRed, int bgGreen, int bgBlue)
+void runGraphicGame(GameClass& game, int screenWidth, int screenHeight, int bgRed, int bgGreen, int bgBlue)
 {
     // Ensure SDL is ready and main can be set by the library
     SDL_SetMainReady();

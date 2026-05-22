@@ -31,6 +31,7 @@ class Candy
 public:
     /// Constructs a unique candy piece of the given type.
     explicit Candy(CandyType candyType);
+    Candy();
 
     /// @return the type of this candy instance.
     CandyType getType() const;

@@ -17,20 +17,31 @@ static Candy CANDY_ARR[6] = {
 
 Board::Board(int width, int height)
 {
-    m_width  = width;  // columnas
-    m_height = height; // filas
+    m_width = width;
+    m_height = height;
+
+    m_grid = new Candy * *[m_height];
+
     for (int i = 0; i < m_height; i++)
     {
+        m_grid[i] = new Candy * [m_width];
+
         for (int j = 0; j < m_width; j++)
         {
             m_grid[i][j] = nullptr;
         }
     }
+
 }
 
 Board::~Board()
 {
-    // Implement your code here
+    for (int i = 0; i < m_height; i++)
+    {
+        delete[] m_grid[i];
+    }
+
+    delete[] m_grid;
 }
 
 Candy* Board::getCell(int x, int y) const

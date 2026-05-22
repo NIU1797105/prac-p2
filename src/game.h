@@ -6,6 +6,11 @@
 
 #include "graphics.h"
 #include "controller.h"
+#include "board.h"
+#include <random>
+
+const int DEFAULT_BLOCKSIZE = 3;
+const int NUM_CANDYTYPES = 6;
 
 /**
  * Main game class: keep track of the game state it. 
@@ -16,7 +21,6 @@ class Game
 {
 public:
     Game();
-
     ~Game();
 
     /// Run the game loop
@@ -53,5 +57,12 @@ public:
 
     /// @return true if this game is equal to the other game (same board state and falling block)
     bool operator==(const Game& other) const;
+private:
+    Board m_board;
+    Candy** m_blockCandy;
+    int m_x;
+    int m_y;
+    bool landed;
+    mt19937 m_gen;
 };
 #endif

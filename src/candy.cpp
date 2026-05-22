@@ -6,6 +6,12 @@
 
 Candy::Candy(CandyType candyType) : m_type(candyType)
 {
+    m_type = candyType;
+}
+
+Candy::Candy()
+{
+    m_type = CandyType::COUNT;
 }
 
 CandyType Candy::getType() const
