@@ -5,12 +5,13 @@
 #include "board.h"
 
 
-
+const int SPEED_GAME = 30;
 
 Game::Game() : m_board(), m_gen(random_device{}())
 {
     m_x = 0;
     m_y = 0;
+    m_speedCounter = 0;
     m_blockCandy = new Candy*[DEFAULT_BLOCKSIZE];
     for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
     {
@@ -31,9 +32,11 @@ Game::~Game()
 
 void Game::update(const Controller& controller)
 {
-    if (!landed)
+    //Generar el bloque de 3 si no existe
+    if (m_blockCandy[0] == nullptr)
     {
-        uniform_int_distribution<int> distributionPosition(0, DEFAULT_BOARD_HEIGHT-1);
+        //Random 
+        uniform_int_distribution<int> distributionPosition(0, DEFAULT_BOARD_WIDTH-1);
         uniform_int_distribution<int> distributionCandyTypes(0, NUM_CANDYTYPES-1);
         m_x = distributionPosition(m_gen);
         m_y = -1;
@@ -45,7 +48,7 @@ void Game::update(const Controller& controller)
                 delete m_blockCandy[i];
             }
             int candyType = distributionCandyTypes(m_gen);
-            CandyType type = CandyType::COUNT;
+            CandyType type;
             switch (candyType)
             {
             case 0:
@@ -90,7 +93,7 @@ void Game::update(const Controller& controller)
         else if (controller.isLeftPressed())
         {
             //Mover bloque de caramelos a la izquierda
-            if (m_x > 0)
+            if (m_x > 0 && m_board.getCell(m_x -1, m_y) == nullptr && m_board.getCell(m_x - 1, m_y - 1) == nullptr && m_board.getCell(m_x - 1, m_y - 2) == nullptr)
             {
                 m_x--;
             }
@@ -98,8 +101,8 @@ void Game::update(const Controller& controller)
         }
         else if (controller.isRightPressed())
         {
-            //Mover bloque de caramelos a la derecha
-            if (m_x < m_board.getWidth()-1)
+            //Mover bloque de caramelos a la 
+            if (m_x < m_board.getWidth() - 1 && m_board.getCell(m_x + 1, m_y) == nullptr && m_board.getCell(m_x + 1, m_y - 1) == nullptr && m_board.getCell(m_x + 1, m_y - 2) == nullptr)
             {
                 m_x++;
             }
@@ -128,15 +131,15 @@ void Game::update(const Controller& controller)
 
     // Estado Tablero
     ///REVISAR Y CAMBIAR
-    if (m_y == m_board.getHeight() - 1 || m_board.getCell(m_x,m_y+1) != nullptr)
+    if (m_y == m_board.getHeight() - 1 || m_board.getCell(m_x,m_y + 1) != nullptr)
     {
         //Ha llegado al límite del tablero
         for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
         {
-            if (m_y + i < m_board.getHeight())
+            if (m_y - i >= 0 && m_y - i < m_board.getHeight())
             { 
                 //Anclar el bloque a su posicion en el board
-                m_board.setCell(m_blockCandy[i], m_x, m_y + i);
+                m_board.setCell(m_blockCandy[i], m_x, m_y - i);
 
                 //Reiniciar el bloque de caramelos
                 if (m_blockCandy[i] != nullptr)
@@ -151,17 +154,29 @@ void Game::update(const Controller& controller)
     }
     else
     {
-        m_y++;
+        if (m_speedCounter >= SPEED_GAME)
+        {
+            m_y++;
+            m_speedCounter = 0;
+        }
+        else
+            m_speedCounter++;
     }
 
-    
     // Explosiones y tal
-}
-bool fallCandy(Board board, int i, int j)
-{
+    bool hasExploded = false;
     
-    return false;
-
+     m_board.explodeAndDrop();
+    
+}
+void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
+{
+    if (candy != nullptr)
+    {
+        graphics.drawImage(Candy(candy->getType()).getResourceName(),
+            CANDY_IMAGE_WIDTH * (3 + x),
+            CANDY_IMAGE_HEIGHT * (3 + y));
+    }
 }
 void Game::render(GraphicManager& graphics)
 {
@@ -177,12 +192,36 @@ void Game::render(GraphicManager& graphics)
         CANDY_IMAGE_HEIGHT * board_size,
         5, 150, 150, 150);
     // Board: place a candy piece
+    //Board
+    for (int y = 0; y < m_board.getHeight(); y++)
+    {
+        for (int x = 0; x < m_board.getWidth(); x++)
+        {
+            Candy* candy = m_board.getCell(x,y);
+            drawCandy(graphics, candy, x, y);
+
+        }
+    }
+
+    //Bloque de caramelos
+    for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
+    {
+        //Si está entre los rangos 0 y 9:
+        if (m_y - i >= 0 && m_y - i < m_board.getHeight())
+        {
+            //Pintalo
+            drawCandy(graphics, m_blockCandy[i], m_x, m_y-i);
+
+        }
+    }
+
 
     
-
+    /*
     graphics.drawImage(Candy(CandyType::TYPE_PURPLE).getResourceName(),
         CANDY_IMAGE_WIDTH * 3,
         CANDY_IMAGE_HEIGHT * 3);
+        */
     // Title [draw images]
     graphics.drawImage("img/logo_small.png", 10, 10);
     // Score and footer [draw text]

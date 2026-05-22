@@ -15,6 +15,7 @@ static Candy CANDY_ORANGE(CandyType::TYPE_ORANGE);
 static Candy CANDY_ARR[6] = {
     CANDY_RED, CANDY_GREEN, CANDY_BLUE, CANDY_YELLOW, CANDY_PURPLE, CANDY_ORANGE};
 
+
 Board::Board(int width, int height)
 {
     m_width = width;
@@ -54,7 +55,12 @@ Candy* Board::getCell(int x, int y) const
 void Board::setCell(Candy* candy, int x, int y)
 {
     if ((x >= 0 && x < m_width) && (y >= 0 && y < m_height))
-        m_grid[y][x] = candy;
+    {
+        if (m_grid[y][x] != nullptr)
+            delete m_grid[y][x];
+
+        m_grid[y][x] = new Candy(candy->getType());
+    }
 }
 
 int Board::getWidth() const
