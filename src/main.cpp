@@ -1,11 +1,13 @@
 /// Project entry point
 #include "../test/test.h"
 #include "game.h"
+#include "signals.h"
 
 #include <iostream>
 
 int main(int argc, const char* argv[])
 {
+    setup_signals();
     if (!constructorTest())
         cout << "Test del constructor no superado" << endl;
     else

@@ -20,7 +20,7 @@ const int MAX_BOARD_HEIGHT = 10;
 
 /// Number of candy pieces of the same type needed to explode a horizontal, vertical or diagonal
 /// line
-const int SHORTEST_EXPLOSION_LINE = 3;
+const int MINIM_EXPLOSIO = 3;
 
 /**
  * Square game board state with r/w access to individual cells.
@@ -48,7 +48,8 @@ class Board
      * Explode all candies that should explode (lines of candies)
      * and then let candies above drop down to fill the gaps.
      * After dropping, repeat until no more candies can explode.
-     * @return a (potentially empty) vector of all exploded candies.
+     * @return a (potentially empty) vector of all exploded candies (returned by value to avoid
+     * ownership / lifetime issues).
      */
     std::vector<Candy*> explodeAndDrop();
 
@@ -80,7 +81,7 @@ class Board
 
     /**
      * Set the cell at the given coordinates to the given candy.
-     * @param candy the candy to place in the cell.
+     * @param candy the candy to place in the cell. If nullptr, the cell is cleared.
      * @param x 0-indexed, left to right, x coordinate of the cell.
      * @param y 0-indexed, top to bottom, y coordinate of the cell.
      */

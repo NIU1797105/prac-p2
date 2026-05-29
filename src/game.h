@@ -60,13 +60,15 @@ public:
 private:
     Board m_board;
     Candy** m_blockCandy;
-    mt19937 m_gen;
+    std::mt19937 m_gen;
 
     int m_x;
     int m_y;
     int m_speedCounter;
     bool landed;
+    bool m_gameOver;
 
     
+
 };
 #endif

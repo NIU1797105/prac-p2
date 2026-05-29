@@ -1,5 +1,6 @@
 ﻿#include "game.h"
 #include <random>
+#include <format>
 #include "graphics.h"
 #include "candy.h"
 #include "board.h"
@@ -7,7 +8,7 @@
 
 const int SPEED_GAME = 30;
 
-Game::Game() : m_board(), m_gen(random_device{}())
+Game::Game() : m_board(), m_gen(std::random_device{}())
 {
     m_x = 0;
     m_y = 0;
@@ -18,6 +19,7 @@ Game::Game() : m_board(), m_gen(random_device{}())
         m_blockCandy[i] = nullptr;
     }
     landed = false;
+    m_gameOver = false;
 }
 
 Game::~Game()
@@ -32,15 +34,25 @@ Game::~Game()
 
 void Game::update(const Controller& controller)
 {
+    if (m_gameOver)
+        return;
+
     //Generar el bloque de 3 si no existe
     if (m_blockCandy[0] == nullptr)
     {
-        //Random 
+        //Random
         uniform_int_distribution<int> distributionPosition(0, DEFAULT_BOARD_WIDTH-1);
         uniform_int_distribution<int> distributionCandyTypes(0, NUM_CANDYTYPES-1);
         m_x = distributionPosition(m_gen);
         m_y = -1;
-         
+
+        // If the top cell in the chosen column is occupied, the block cannot spawn -> game over
+        if (m_board.getCell(m_x, 0) != nullptr)
+        {
+            m_gameOver = true;
+            return;
+        }
+
         for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
         {
             if (m_blockCandy[i] != nullptr)
@@ -101,7 +113,7 @@ void Game::update(const Controller& controller)
         }
         else if (controller.isRightPressed())
         {
-            //Mover bloque de caramelos a la 
+            //Mover bloque de caramelos a la
             if (m_x < m_board.getWidth() - 1 && m_board.getCell(m_x + 1, m_y) == nullptr && m_board.getCell(m_x + 1, m_y - 1) == nullptr && m_board.getCell(m_x + 1, m_y - 2) == nullptr)
             {
                 m_x++;
@@ -130,44 +142,100 @@ void Game::update(const Controller& controller)
     }
 
     // Estado Tablero
-    ///REVISAR Y CAMBIAR
-    if (m_y == m_board.getHeight() - 1 || m_board.getCell(m_x,m_y + 1) != nullptr)
+    // Decide whether the falling block should land. The previous logic only checked the
+    // cell immediately below the block's bottom which allowed overlapping existing
+    // candies higher in the column. We now check whether moving the block down by one
+    // would cause any of its cells to overlap existing candies; if so, it must land
+    // at the current position. If the block cannot be placed at the current position
+    // because there is no free cell in the column, we mark game over.
     {
-        //Ha llegado al límite del tablero
-        for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
+        int newY = m_y + 1;
+        bool willCollide = false;
+        for (int i = 0; i < DEFAULT_BLOCKSIZE; ++i)
         {
-            if (m_y - i >= 0 && m_y - i < m_board.getHeight())
-            { 
-                //Anclar el bloque a su posicion en el board
-                m_board.setCell(m_blockCandy[i], m_x, m_y - i);
-
-                //Reiniciar el bloque de caramelos
-                if (m_blockCandy[i] != nullptr)
+            int pos = newY - i;
+            if (pos >= 0 && pos < m_board.getHeight())
+            {
+                if (m_board.getCell(m_x, pos) != nullptr)
                 {
-                    delete m_blockCandy[i];
-                    m_blockCandy[i] = nullptr;
+                    willCollide = true;
+                    break;
                 }
             }
-            
         }
-        landed = true;
-    }
-    else
-    {
-        if (m_speedCounter >= SPEED_GAME)
+
+        if (newY >= m_board.getHeight() || willCollide)
         {
-            m_y++;
-            m_speedCounter = 0;
+            // Before anchoring, check if there's at least one free cell where the block
+            // would be placed. If none, the column is full and the game should end.
+            bool hasSpaceToPlace = false;
+            for (int i = 0; i < DEFAULT_BLOCKSIZE; ++i)
+            {
+                int pos = m_y - i;
+                if (pos >= 0 && pos < m_board.getHeight())
+                {
+                    if (m_board.getCell(m_x, pos) == nullptr)
+                    {
+                        hasSpaceToPlace = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasSpaceToPlace)
+            {
+                // No room to place any part of the block -> game over
+                m_gameOver = true;
+                // Clean up the falling block
+                for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
+                {
+                    if (m_blockCandy[i] != nullptr)
+                    {
+                        delete m_blockCandy[i];
+                        m_blockCandy[i] = nullptr;
+                    }
+                }
+            }
+            else
+            {
+                // Anchor the block at the current position (none of these cells should
+                // contain candies because movement checks ensure the current position is safe)
+                for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
+                {
+                    if (m_y - i >= 0 && m_y - i < m_board.getHeight())
+                    {
+                        m_board.setCell(m_blockCandy[i], m_x, m_y - i);
+
+                        if (m_blockCandy[i] != nullptr)
+                        {
+                            delete m_blockCandy[i];
+                            m_blockCandy[i] = nullptr;
+                        }
+                    }
+                }
+                landed = true;
+            }
         }
         else
-            m_speedCounter++;
+        {
+            if (m_speedCounter >= SPEED_GAME)
+            {
+                m_y++;
+                m_speedCounter = 0;
+            }
+            else
+            {
+                m_speedCounter++;
+            }
+        }
     }
 
+
     // Explosiones y tal
-    bool hasExploded = false;
-    
-     m_board.explodeAndDrop();
-    
+    // explodeAndDrop returns a vector<Candy*> (non-owning pointers). Caller must not delete these
+    std::vector<Candy*> exploded = m_board.explodeAndDrop();
+    (void)exploded; // currently unused
+
 }
 void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
 {
@@ -181,7 +249,7 @@ void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
 void Game::render(GraphicManager& graphics)
 {
     // Implement your code here
-    
+
     // Note: the following code exhibits the main graphic library features
     // Board: border [draw rectangles] and a single piece of candy
     const int board_size = 10;
@@ -215,8 +283,6 @@ void Game::render(GraphicManager& graphics)
         }
     }
 
-
-    
     /*
     graphics.drawImage(Candy(CandyType::TYPE_PURPLE).getResourceName(),
         CANDY_IMAGE_WIDTH * 3,
@@ -229,6 +295,25 @@ void Game::render(GraphicManager& graphics)
                       "Buttons: [Q] [W] [E]  --  Exit [ESC]",
                       25, 700, 20, 100, 100, 100);
     graphics.drawText("Score: ", 450, 10, 70, 125, 200, 125);
+
+    #ifndef GRADESCOPE
+    if (m_gameOver)
+    {
+        static int nFrame = 0;
+        static bool state = false;
+
+        string str = "img/game_over_n" + std::to_string(nFrame) + ".png";
+        graphics.drawImage(str, 0, 0);
+
+            if (nFrame == 0 || nFrame == 10)
+            state = !state;
+        if (state) {
+            nFrame++;
+        } else {
+            nFrame--;
+        }
+    }
+    #endif
 }
 
 void Game::run()
