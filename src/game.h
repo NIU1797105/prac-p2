@@ -3,11 +3,13 @@
  */
 #ifndef GAME_H
 #define GAME_H
-
+// #define GRADESCOPE
+#include "candy.h"
 #include "graphics.h"
 #include "controller.h"
 #include "board.h"
 #include <random>
+#include <vector>
 
 const int DEFAULT_BLOCKSIZE = 3;
 const int NUM_CANDYTYPES = 6;
@@ -55,6 +57,11 @@ public:
      */
     bool load(const std::string& input_path);
 
+    /**
+     * Appends to the game score given the exploded candies.
+     */
+    void scoreUpdate(const std::vector<Candy*>& candies);
+
     /// @return true if this game is equal to the other game (same board state and falling block)
     bool operator==(const Game& other) const;
 private:
@@ -67,8 +74,6 @@ private:
     int m_speedCounter;
     bool landed;
     bool m_gameOver;
-
-    
-
+    int m_score;
 };
 #endif

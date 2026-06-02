@@ -7,7 +7,9 @@
 
 int main(int argc, const char* argv[])
 {
+    #ifndef GRADESCOPE
     setup_signals();
+    #endif
     if (!constructorTest())
         cout << "Test del constructor no superado" << endl;
     else

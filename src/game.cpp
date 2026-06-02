@@ -1,6 +1,6 @@
 ﻿#include "game.h"
 #include <random>
-#include <format>
+#include <vector>
 #include "graphics.h"
 #include "candy.h"
 #include "board.h"
@@ -20,6 +20,7 @@ Game::Game() : m_board(), m_gen(std::random_device{}())
     }
     landed = false;
     m_gameOver = false;
+    m_score = 0;
 }
 
 Game::~Game()
@@ -41,17 +42,27 @@ void Game::update(const Controller& controller)
     if (m_blockCandy[0] == nullptr)
     {
         //Random
-        uniform_int_distribution<int> distributionPosition(0, DEFAULT_BOARD_WIDTH-1);
         uniform_int_distribution<int> distributionCandyTypes(0, NUM_CANDYTYPES-1);
-        m_x = distributionPosition(m_gen);
-        m_y = -1;
 
-        // If the top cell in the chosen column is occupied, the block cannot spawn -> game over
-        if (m_board.getCell(m_x, 0) != nullptr)
+        std::vector<int> availableColumns;
+        for (int x = 0; x < m_board.getWidth(); ++x)
+        {
+            if (m_board.getCell(x, 0) == nullptr)
+            {
+                availableColumns.push_back(x);
+            }
+        }
+
+        if (availableColumns.size() == 0)
         {
             m_gameOver = true;
             return;
         }
+
+        int availableCount = (int)availableColumns.size();
+        uniform_int_distribution<int> distributionPosition(0, availableCount - 1);
+        m_x = availableColumns[distributionPosition(m_gen)];
+        m_y = -1;
 
         for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
         {
@@ -135,11 +146,12 @@ void Game::update(const Controller& controller)
     if (controller.isKey2Pressed()) //W
     {
         //Guardar estado
+        m_board.dump("data/save.txt");
     }
-    else if (controller.isKey3Pressed()) //E
-    {
-        //Leer estado, asumo¿¿
-    }
+    // else if (controller.isKey3Pressed() && m_toLoad) //E
+    // {
+    //     m_board.load(m_toLoad)
+    // }
 
     // Estado Tablero
     // Decide whether the falling block should land. The previous logic only checked the
@@ -166,23 +178,7 @@ void Game::update(const Controller& controller)
 
         if (newY >= m_board.getHeight() || willCollide)
         {
-            // Before anchoring, check if there's at least one free cell where the block
-            // would be placed. If none, the column is full and the game should end.
-            bool hasSpaceToPlace = false;
-            for (int i = 0; i < DEFAULT_BLOCKSIZE; ++i)
-            {
-                int pos = m_y - i;
-                if (pos >= 0 && pos < m_board.getHeight())
-                {
-                    if (m_board.getCell(m_x, pos) == nullptr)
-                    {
-                        hasSpaceToPlace = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!hasSpaceToPlace)
+            if (willCollide && m_y < DEFAULT_BLOCKSIZE)
             {
                 // No room to place any part of the block -> game over
                 m_gameOver = true;
@@ -234,9 +230,14 @@ void Game::update(const Controller& controller)
     // Explosiones y tal
     // explodeAndDrop returns a vector<Candy*> (non-owning pointers). Caller must not delete these
     std::vector<Candy*> exploded = m_board.explodeAndDrop();
-    (void)exploded; // currently unused
-
+    scoreUpdate(exploded);
 }
+
+void Game::scoreUpdate(const std::vector<Candy*>& candies) {
+    if (candies.size() > 0)
+        m_score += 1000 * (1 << (candies.size() - MINIM_EXPLOSIO));
+}
+
 void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
 {
     if (candy != nullptr)
@@ -294,7 +295,7 @@ void Game::render(GraphicManager& graphics)
     graphics.drawText("Movement: [Up] [Down] [Left] [Right]  --  "
                       "Buttons: [Q] [W] [E]  --  Exit [ESC]",
                       25, 700, 20, 100, 100, 100);
-    graphics.drawText("Score: ", 450, 10, 70, 125, 200, 125);
+    graphics.drawText("Score: " + std::to_string(m_score), 220, 10, 70, 125, 200, 125);
 
     #ifndef GRADESCOPE
     if (m_gameOver)
@@ -305,7 +306,7 @@ void Game::render(GraphicManager& graphics)
         string str = "img/game_over_n" + std::to_string(nFrame) + ".png";
         graphics.drawImage(str, 0, 0);
 
-            if (nFrame == 0 || nFrame == 10)
+        if (nFrame == 0 || nFrame == 10)
             state = !state;
         if (state) {
             nFrame++;
