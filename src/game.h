@@ -3,7 +3,7 @@
  */
 #ifndef GAME_H
 #define GAME_H
-// #define GRADESCOPE
+#define GRADESCOPE
 #include "candy.h"
 #include "graphics.h"
 #include "controller.h"

@@ -142,6 +142,39 @@ bool Board::searchCandy(int x, int y, int& count, int difX, int difY, CandyType 
     return (count >= MINIM_EXPLOSIO);
 }
 
+bool Board::operator==(const Board& other) const
+{
+    bool ret = true;
+    if (m_height != other.m_height)
+        ret = false;
+    if (ret && m_width != other.m_width)
+        ret = false;
+
+
+    for (int y = 0; y < m_height && ret; y++)
+    {
+        for (int x = 0; x < m_width && ret; x++)
+        {
+            Candy* a = m_grid[y][x];
+            Candy* b = other.m_grid[y][x];
+                
+            if (a == nullptr && b != nullptr)
+                ret = false;
+
+            if (b == nullptr && a != nullptr)
+                ret = false;
+
+            if (a != nullptr && b != nullptr)
+            {
+                if (a->getType() != b->getType())
+                    ret = false;
+            }
+        }
+    }
+    
+    return ret;
+}
+
 bool Board::shouldExplode(int x, int y) const
 {
     int count = 1;

@@ -4,7 +4,7 @@
 #include "graphics.h"
 #include "candy.h"
 #include "board.h"
-
+#include <fstream>
 
 const int SPEED_GAME = 30;
 
@@ -38,6 +38,8 @@ void Game::update(const Controller& controller)
     if (m_gameOver)
         return;
 
+   
+
     //Generar el bloque de 3 si no existe
     if (m_blockCandy[0] == nullptr)
     {
@@ -49,6 +51,7 @@ void Game::update(const Controller& controller)
         {
             if (m_board.getCell(x, 0) == nullptr)
             {
+
                 availableColumns.push_back(x);
             }
         }
@@ -116,6 +119,7 @@ void Game::update(const Controller& controller)
         else if (controller.isLeftPressed())
         {
             //Mover bloque de caramelos a la izquierda
+
             if (m_x > 0 && m_board.getCell(m_x -1, m_y) == nullptr && m_board.getCell(m_x - 1, m_y - 1) == nullptr && m_board.getCell(m_x - 1, m_y - 2) == nullptr)
             {
                 m_x--;
@@ -146,7 +150,11 @@ void Game::update(const Controller& controller)
     if (controller.isKey2Pressed()) //W
     {
         //Guardar estado
-        m_board.dump("data/save.txt");
+        dump("save.txt");
+    }
+    if (controller.isKey3Pressed()) //E
+    {
+        load("save.txt");
     }
     // else if (controller.isKey3Pressed() && m_toLoad) //E
     // {
@@ -282,6 +290,17 @@ void Game::render(GraphicManager& graphics)
             drawCandy(graphics, m_blockCandy[i], m_x, m_y-i);
 
         }
+        else
+        {
+            if (m_y - i > m_board.getHeight())
+            {
+                if (m_blockCandy[i] != nullptr)
+                {
+                    delete m_blockCandy[i];
+                    m_blockCandy[i] = nullptr;
+                }
+            }
+        }
     }
 
     /*
@@ -331,18 +350,135 @@ void Game::run()
 
 bool Game::dump(const std::string& output_path) const
 {
-    // Implement your code here
-    return false;
+    bool ret = false;
+    ret = m_board.dump(output_path);
+
+    if (!ret)
+        return false;
+
+    ofstream f;
+    f.open(output_path, ofstream::app);
+    if (!f.is_open())
+        return false;
+    f << m_y << " " << m_x << "\n";
+    for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
+    {
+        if (m_blockCandy[i] == nullptr)
+            f << -1 << "\n";
+        else
+            f << int(m_blockCandy[i]->getType()) << " ";
+    }
+    f << m_score << "\n";
+    ret = f.good();
+    f.close();
+    return ret;
 }
 
 bool Game::load(const std::string& input_path)
 {
-    // Implement your code here
-    return false;
+    bool ret = false;
+    ret = m_board.load(input_path);
+    
+    std::ifstream f(input_path);
+    if (!f.is_open())
+        return false;
+
+
+    int h, w;
+
+    // saltar l oque ya se habia leido antes
+    f >> h >> w;
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++)
+        {
+            int tmp;
+            f >> tmp;
+        }
+
+    //Ahora sí
+    int y, x = 0;
+    f >> y >> x;
+    if (!f.good() && !f.eof())
+        return false;
+    if (y < -1 || x < 0 || y > 9 || x > 9)
+        return false;
+
+
+    for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
+    {
+        int type = 0;
+        f >> type;
+        CandyType Ctype;
+        switch (type)
+        {
+        case -1:
+            m_blockCandy[i] = nullptr;
+            break;
+        case 0:
+            Ctype = CandyType::TYPE_RED;
+            break;
+        case 1:
+            Ctype = CandyType::TYPE_GREEN;
+            break;
+        case 2:
+            Ctype = CandyType::TYPE_BLUE;
+            break;
+        case 3:
+            Ctype = CandyType::TYPE_YELLOW;
+            break;
+        case 4:
+            Ctype = CandyType::TYPE_PURPLE;
+            break;
+        case 5:
+            Ctype = CandyType::TYPE_ORANGE;
+            break;
+        default:
+            Ctype = CandyType::TYPE_RED;
+            break;
+
+        }
+        if (type != -1)
+            m_blockCandy[i] = new Candy(Ctype);
+       
+    }
+    f >> m_score;
+    ret = f.good();
+    f.close();
+    return ret;
 }
 
 bool Game::operator==(const Game& other) const
 {
-    // Implement your code here
-    return false;
+    bool ret = true;
+
+    if (!(m_board == other.m_board))
+        ret = false;
+
+    if (ret && m_y != other.m_y)
+        ret = false;
+    if (ret && m_x != other.m_x)
+        ret = false;
+    if (ret && m_score != other.m_score)
+        ret = false;
+
+
+    for (int i = 0; i < DEFAULT_BLOCKSIZE && ret; i++)
+    {
+        Candy* a = m_blockCandy[i];
+        Candy* b = other.m_blockCandy[i];
+
+        if (a == nullptr && b != nullptr)
+            ret = false;
+
+        if (b == nullptr && a != nullptr)
+            ret = false;
+
+        if (a != nullptr && b != nullptr)
+        {
+            if (a->getType() != b->getType())
+                ret = false;
+        }
+    }
+    
+    return ret;
 }
