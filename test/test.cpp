@@ -114,7 +114,6 @@ bool constructorTest()
                   << std::endl;
         ok = false;
     }
-    return ok;
 
     // setCell fuera de rango
     b.setCell(&c1, -1, 0);
