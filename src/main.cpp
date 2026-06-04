@@ -10,6 +10,7 @@ int main(int argc, const char* argv[])
     #endif
     test();
     // The following code runs the graphic part
+    Sound_Init();
     Game game;
     if (argc > 1)
         game.load(argv[1]);

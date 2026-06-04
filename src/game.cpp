@@ -6,6 +6,7 @@
 #include "board.h"
 #include <fstream>
 
+extern struct T_SOUND* g_current_music;
 const int SPEED_GAME = 30;
 
 Game::Game() : m_board(), m_gen(std::random_device{}())
@@ -18,9 +19,19 @@ Game::Game() : m_board(), m_gen(std::random_device{}())
     {
         m_blockCandy[i] = nullptr;
     }
-    landed = false;
+    m_landed = false;
+    m_pause = false;
     m_gameOver = false;
     m_score = 0;
+
+    //Audio
+    m_music_bg = Sound_LoadMusic((char*)"../../data/audio/bg.ogg", 1);
+    m_sound_stars = Sound_LoadSound((char*)"../../data/audio/stars.ogg");
+    m_music_pause = Sound_LoadSound((char*)"../../data/audio/beam.ogg");
+    m_music_croco = Sound_LoadSound((char*)"../../data/audio/crocodile_2.ogg");
+    m_music_pause->bLoop = PLAY_THEN_LOOP_AT_END;
+    m_music_croco->bLoop = PLAY_THEN_LOOP_AT_END;
+    m_music_bg->estado = SOUND_STATE_PLAYING;
 }
 
 Game::~Game()
@@ -81,43 +92,58 @@ void Game::update(const Controller& controller)
         //Inputs
         if (controller.isUpPressed())
         {
-            //NO se que hace
-        }
-        else if (controller.isDownPressed())
-        {
-            //Acelerar caída
-            int i = 0;
-            bool trobat = false;
-
-            while (m_board.getHeight() > i && !trobat)
-                trobat = nullptr != m_board.getCell(m_x, i++);
-
-            m_y = i - (1 + static_cast<int>(trobat));
-        }
-        else if (controller.isLeftPressed())
-        {
-            //Mover bloque de caramelos a la izquierda
-
-            if (m_x > 0 && m_board.getCell(m_x -1, m_y) == nullptr
-                && m_board.getCell(m_x - 1, m_y - 1) == nullptr
-                && m_board.getCell(m_x - 1, m_y - 2) == nullptr)
+            m_pause = !m_pause;
+            if (m_pause)
             {
-                m_x--;
+                Sound_Pause(m_music_bg);
+                g_current_music = NULL;
+                Sound_Play(m_music_pause, SOUND_FORCE_RESTART);
             }
-
-        }
-        else if (controller.isRightPressed())
-        {
-            //Mover bloque de caramelos a la
-            if (m_x < m_board.getWidth() - 1
-                && m_board.getCell(m_x + 1, m_y) == nullptr
-                && m_board.getCell(m_x + 1, m_y - 1) == nullptr
-                && m_board.getCell(m_x + 1, m_y - 2) == nullptr)
+            else
             {
-                m_x++;
+                Sound_Stop(m_music_pause);
+                g_current_music = m_music_bg;
+                m_music_bg->estado = SOUND_STATE_PLAYING;
             }
         }
-        else if (controller.isKey1Pressed()) //Q
+        if (!m_pause)
+        {
+            if (controller.isDownPressed())
+            {
+                //Acelerar caída
+                int i = 0;
+                bool trobat = false;
+
+                while (m_board.getHeight() > i && !trobat)
+                    trobat = nullptr != m_board.getCell(m_x, i++);
+
+                m_y = i - (1 + static_cast<int>(trobat));
+            }
+            else if (controller.isLeftPressed())
+            {
+                //Mover bloque de caramelos a la izquierda
+
+                if (m_x > 0 && m_board.getCell(m_x - 1, m_y) == nullptr
+                    && m_board.getCell(m_x - 1, m_y - 1) == nullptr
+                    && m_board.getCell(m_x - 1, m_y - 2) == nullptr)
+                {
+                    m_x--;
+                }
+
+            }
+            else if (controller.isRightPressed())
+            {
+                //Mover bloque de caramelos a la
+                if (m_x < m_board.getWidth() - 1
+                    && m_board.getCell(m_x + 1, m_y) == nullptr
+                    && m_board.getCell(m_x + 1, m_y - 1) == nullptr
+                    && m_board.getCell(m_x + 1, m_y - 2) == nullptr)
+                {
+                    m_x++;
+                }
+            }
+        }
+        if (controller.isKey1Pressed()) //Q
         {
             // se rota el orden de los caramelos dentro del bloque que cae (ABC → BCA → CAB → ABC).
             Candy* tmp = m_blockCandy[0];
@@ -188,19 +214,22 @@ void Game::update(const Controller& controller)
                         }
                     }
                 }
-                landed = true;
+                m_landed = true;
             }
         }
         else
         {
-            if (m_speedCounter >= SPEED_GAME)
+            if (!m_pause)
             {
-                m_y++;
-                m_speedCounter = 0;
-            }
-            else
-            {
-                m_speedCounter++;
+                if (m_speedCounter >= SPEED_GAME)
+                {
+                    m_y++;
+                    m_speedCounter = 0;
+                }
+                else
+                {
+                    m_speedCounter++;
+                }
             }
         }
     }
@@ -213,7 +242,10 @@ void Game::update(const Controller& controller)
 
 void Game::scoreUpdate(const std::vector<Candy*>& candies) {
     if (candies.size() > 0)
+    {
         m_score += 1000 * (1 << (candies.size() - MINIM_EXPLOSIO));
+        Sound_Play(m_sound_stars, SOUND_DO_NOT_RESTART_IF_ALREADY_PLAYING);
+    }
 }
 
 void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
@@ -228,27 +260,32 @@ void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
 void Game::render(GraphicManager& graphics)
 {
     // Implement your code here
+    graphics.drawImage("img/bg_2.png", 0, 0);
 
     // Note: the following code exhibits the main graphic library features
     // Board: border [draw rectangles] and a single piece of candy
     const int board_size = 10;
     const int board_padding = 3;
+    /*
     graphics.drawRectangle(
         CANDY_IMAGE_HEIGHT * board_padding, CANDY_IMAGE_HEIGHT * board_padding,
         CANDY_IMAGE_WIDTH * board_size,
         CANDY_IMAGE_HEIGHT * board_size,
         5, 150, 150, 150);
+        */
+    graphics.drawImage("img/grid.png", CANDY_IMAGE_HEIGHT * board_padding, CANDY_IMAGE_HEIGHT * board_padding);
     // Board: place a candy piece
     //Board
     for (int y = 0; y < m_board.getHeight(); y++)
     {
         for (int x = 0; x < m_board.getWidth(); x++)
         {
-            Candy* candy = m_board.getCell(x,y);
+            Candy* candy = m_board.getCell(x, y);
             drawCandy(graphics, candy, x, y);
 
         }
     }
+    graphics.drawImage("img/frame.png", CANDY_IMAGE_HEIGHT * board_padding, CANDY_IMAGE_HEIGHT * board_padding);
 
     //Bloque de caramelos
     for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
@@ -257,7 +294,7 @@ void Game::render(GraphicManager& graphics)
         if (m_y - i >= 0 && m_y - i < m_board.getHeight())
         {
             //Pintalo
-            drawCandy(graphics, m_blockCandy[i], m_x, m_y-i);
+            drawCandy(graphics, m_blockCandy[i], m_x, m_y - i);
 
         }
         else
@@ -278,15 +315,15 @@ void Game::render(GraphicManager& graphics)
         CANDY_IMAGE_WIDTH * 3,
         CANDY_IMAGE_HEIGHT * 3);
         */
-    // Title [draw images]
+        // Title [draw images]
     graphics.drawImage("img/logo_small.png", 10, 10);
     // Score and footer [draw text]
     graphics.drawText("Movement: [Up] [Down] [Left] [Right]  --  "
-                      "Buttons: [Q] [W] [E]  --  Exit [ESC]",
-                      25, 700, 20, 100, 100, 100);
-    graphics.drawText("Score: " + std::to_string(getScore()), 220, 10, 70, 125, 200, 125);
+        "Buttons: [Q] [W] [E]  --  Exit [ESC]",
+        25, 700, 20, 100, 100, 100);
+    graphics.drawText("Score: " + std::to_string(m_score),260, 30, 70, 125, 200, 125);
 
-    #ifndef GRADESCOPE
+#ifndef GRADESCOPE
     if (m_gameOver)
     {
         static int nFrame = 0;
@@ -299,16 +336,18 @@ void Game::render(GraphicManager& graphics)
             state = !state;
         if (state) {
             nFrame++;
-        } else {
+}
+        else {
             nFrame--;
         }
     }
-    #endif
+#endif
 }
+
 
 void Game::run()
 {
-    const int screen_width = 750;
+    const int screen_width = 1080;
     const int screen_height = 750;
     const int bg_red = 255;
     const int bg_green = 255;

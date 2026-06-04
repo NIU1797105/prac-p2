@@ -10,6 +10,7 @@
 #include "board.h"
 #include <random>
 #include <vector>
+#include "sound.h"
 
 const int DEFAULT_BLOCKSIZE = 3;
 const int NUM_CANDYTYPES = 6;
@@ -78,8 +79,13 @@ private:
     int m_x;
     int m_y;
     int m_speedCounter;
-    bool landed;
+    bool m_landed;
     bool m_gameOver;
+    bool m_pause;
     int m_score;
+    T_SOUND* m_music_bg;
+    T_SOUND* m_sound_stars;
+    T_SOUND* m_music_pause;
+    T_SOUND* m_music_croco;
 };
 #endif

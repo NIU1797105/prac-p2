@@ -76,7 +76,7 @@ void GraphicManager::drawImage(const std::string& resource_name, int x, int y)
 void GraphicManager::drawText(
     const std::string& text, int x, int y, int font_size, int red, int green, int blue)
 {
-    std::string font_path = getDataDirPath() + "fonts/freesans.ttf";
+    std::string font_path = getDataDirPath() + "fonts/gunplayrg.ttf";
     TTF_Font* font = TTF_OpenFont(font_path.c_str(), font_size);
     if (!font)
     {
@@ -84,7 +84,7 @@ void GraphicManager::drawText(
     }
     else
     {
-        SDL_Color color = {static_cast<Uint8>(red), static_cast<Uint8>(green), static_cast<Uint8>(blue), 255};
+        SDL_Color color = { 245, 245, 245, 255 };
         SDL_Surface* surf = TTF_RenderUTF8_Blended(font, text.c_str(), color);
         if (!surf)
         {
