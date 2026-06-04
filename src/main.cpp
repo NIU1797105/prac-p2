@@ -3,8 +3,6 @@
 #include "game.h"
 #include "signals.h"
 
-#include <iostream>
-
 int main(int argc, const char* argv[])
 {
     #ifndef GRADESCOPE
