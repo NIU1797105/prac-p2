@@ -284,7 +284,7 @@ void Game::render(GraphicManager& graphics)
     graphics.drawText("Movement: [Up] [Down] [Left] [Right]  --  "
                       "Buttons: [Q] [W] [E]  --  Exit [ESC]",
                       25, 700, 20, 100, 100, 100);
-    graphics.drawText("Score: " + std::to_string(m_score), 220, 10, 70, 125, 200, 125);
+    graphics.drawText("Score: " + std::to_string(getScore()), 220, 10, 70, 125, 200, 125);
 
     #ifndef GRADESCOPE
     if (m_gameOver)
@@ -338,7 +338,7 @@ bool Game::dump(const std::string& output_path) const
         else
             f << int(m_blockCandy[i]->getType()) << " ";
     }
-    f << m_score << " " << m_gameOver << "\n";
+    f << getScore() << " " << m_gameOver << "\n";
     ret = f.good();
     f.close();
     return ret;

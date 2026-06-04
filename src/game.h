@@ -64,6 +64,12 @@ public:
 
     /// @return true if this game is equal to the other game (same board state and falling block)
     bool operator==(const Game& other) const;
+
+    /**
+     * Returns the score.
+     */
+    int getScore() const { return m_score; }
+
 private:
     Board m_board;
     Candy** m_blockCandy;

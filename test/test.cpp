@@ -7,6 +7,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 bool test()
 {
@@ -19,6 +20,7 @@ bool test()
     RUN(constructorTest);
     RUN(shouldExplodeTest);
     RUN(candyParseTest);
+    RUN(gameTest);
 
     if (allPassed)
         std::cout << "All tests passed." << std::endl;
@@ -28,6 +30,7 @@ bool test()
 
 bool boardTest()
 {
+    bool ret = true;
     const int SIZE = 10;
 
     // Test board 2D container
@@ -43,40 +46,23 @@ bool boardTest()
         b.setCell(&c2, i, i);
     }
     for (int i = 0; i < SIZE; i++)
-    {
-
         for (int j = 0; j < SIZE; j++)
-        {
-            if (b.getCell(i, j)->getType() != (i == j ? c2 : c).getType())
-            {
-                return false;
-            }
-        }
-    }
+            ret = ret && (b.getCell(i, j)->getType() == (i == j ? c2 : c).getType());
 
     // Dump and load board
-    if (!b.dump(getDataDirPath() + "dump_board.txt"))
-    {
-        return false;
-    }
-    Board b2(SIZE, SIZE);
-    if (!b2.load(getDataDirPath() + "dump_board.txt"))
-    {
-        return false;
-    }
-    for (int i = 0; i < SIZE; i++)
-    {
-        for (int j = 0; j < SIZE; j++)
-        {
-            if (b.getCell(i, j)->getType() != b2.getCell(i, j)->getType())
-            {
-                return false;
-            }
-        }
-    }
-    std::filesystem::remove(getDataDirPath() + "dump_board.txt");
+    ret = ret && b.dump(getDataDirPath() + "dump_board.txt");
 
-    return true;
+    Board b2(SIZE, SIZE);
+    ret = ret && b2.load(getDataDirPath() + "dump_board.txt");
+
+    for (int i = 0; i < SIZE; i++)
+        for (int j = 0; j < SIZE; j++)
+            ret = ret && (b.getCell(i, j)->getType() == b2.getCell(i, j)->getType());
+
+    std::filesystem::remove(getDataDirPath() + "dump_board.txt");
+    ret = ret && b == b;
+
+    return ret;
 }
 
 bool constructorTest()
@@ -324,5 +310,29 @@ bool candyParseTest()
     bool ret = true;
     for (int i = 0; i < NUM_CANDYTYPES; i++)
         ret = ret && Candy::parse_new(i)->getType() == static_cast<CandyType>(i);
+    return ret;
+}
+
+bool gameTest()
+{
+    const int SIZE = 10;
+    bool ret = true;
+    Game game;
+
+    ret = ret && game == game;
+    auto c = new Candy(CandyType::TYPE_BLUE);
+    std::vector<Candy*> vec(3, c);
+    game.scoreUpdate(vec);
+    ret = ret && game.getScore() == 1000;
+
+    int acc = 1000;
+    for (int i = 4; i <= 6; i++)
+    {
+        vec.push_back(c);
+        game.scoreUpdate(vec);
+        acc += 1000 * (1 << i - 3);
+    }
+    ret = ret && game.getScore() == acc;
+
     return ret;
 }
