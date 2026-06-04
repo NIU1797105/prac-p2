@@ -97,13 +97,13 @@ bool constructorTest()
     b.setCell(&c1, 0, 0);
     b.setCell(&c2, 4, 4);
 
-    if (b.getCell(0, 0) != &c1)
+    if (*b.getCell(0, 0) != c1)
     {
         std::cout << "Error: getCell(0,0) no devuelve el candy esperado: " << b.getCell(0, 0)
                   << std::endl;
         ok = false;
     }
-    if (b.getCell(4, 4) != &c2)
+    if (*b.getCell(4, 4) != c2)
     {
         std::cout << "Error: getCell(4,4) no devuelve el candy esperado: " << b.getCell(4, 4)
                   << std::endl;
