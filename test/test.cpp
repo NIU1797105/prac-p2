@@ -3,11 +3,30 @@
 #include "controller.h"
 #include "game.h"
 #include "util.h"
+#include "test.h"
 
 #include <filesystem>
 #include <iostream>
 
 bool test()
+{
+    std::cout << "\nRunning test suite:" << std::endl;
+    bool allPassed = true;
+    #define RUN(test) if (allPassed && !(allPassed = allPassed && (test)())) \
+                            ::std::cout << "Failure: `test::" #test << "()`" << ::std::endl;
+
+    RUN(boardTest);
+    RUN(constructorTest);
+    RUN(shouldExplodeTest);
+    RUN(candyParseTest);
+
+    if (allPassed)
+        std::cout << "All tests passed." << std::endl;
+
+    return allPassed;
+}
+
+bool boardTest()
 {
     const int SIZE = 10;
 
@@ -139,10 +158,6 @@ bool shouldExplodeTest()
         std::cout << "Error: horizontal no detectado en (1,0)" << std::endl;
         ok = false;
     }
-    else
-    {
-        std::cout << "Horizontal detectado en (1,0)" << std::endl;
-    }
     // --- Vertical ---
     Candy cBlue(CandyType::TYPE_BLUE);
     b.setCell(&cBlue, 0, 1);
@@ -153,10 +168,6 @@ bool shouldExplodeTest()
     {
         std::cout << "Error: vertical no detectado en (0,1)" << std::endl;
         ok = false;
-    }
-    else
-    {
-        std::cout << "Vertical detectado en (0,2)" << std::endl;
     }
     // --- Diagonal / ---
     Candy cGreen(CandyType::TYPE_GREEN);
@@ -169,9 +180,6 @@ bool shouldExplodeTest()
         std::cout << "Error: diagonal / no detectada en (2,2)" << std::endl;
         ok = false;
     }
-    else
-        std::cout << "Diagonal / detectado en (2,2)" << std::endl;
-
     // --- Diagonal \ ---
     Candy cYellow(CandyType::TYPE_YELLOW);
     b.setCell(&cYellow, 0, 0);
@@ -183,9 +191,6 @@ bool shouldExplodeTest()
         std::cout << "Error: diagonal \\ no detectada en (1,1)" << std::endl;
         ok = false;
     }
-    else
-        std::cout << "Diagonal \\ detectado en (1,1)" << std::endl;
-
     // --- No explosion ---
     Candy cOrange(CandyType::TYPE_ORANGE);
     b.setCell(&cOrange, 4, 4);
@@ -194,10 +199,6 @@ bool shouldExplodeTest()
     {
         std::cout << "Error: shouldExplode devolvió true para candy aislado (4,4)" << std::endl;
         ok = false;
-    }
-    else
-    {
-        std::cout << "Nada explotó =)" << std::endl;
     }
     return ok;
 }
@@ -238,10 +239,6 @@ bool explodeAndDropTest()
             std::cout << "Error: candy azul no cayó correctamente a (4,1)" << std::endl;
             ok = false;
         }
-        else
-        {
-            std::cout << "Test 1: Explosión simple y caída OK" << std::endl;
-        }
     }
 
     // --- En cadena ---
@@ -266,10 +263,6 @@ bool explodeAndDropTest()
                       << std::endl;
             ok = false;
         }
-        else
-        {
-            std::cout << "Test 2: Cascada (chain reaction) OK" << std::endl;
-        }
     }
 
     // --- Multiples gruops ---
@@ -292,10 +285,6 @@ bool explodeAndDropTest()
             std::cout << "Error: grupos múltiples deberían explotar 6 candies, explotó "
                       << exploded.size() << std::endl;
             ok = false;
-        }
-        else
-        {
-            std::cout << "Test 3: Múltiples grupos simultáneos OK" << std::endl;
         }
     }
 
@@ -325,15 +314,15 @@ bool explodeAndDropTest()
             std::cout << "Error: tablero cambió sin explosiones" << std::endl;
             ok = false;
         }
-        else
-        {
-            std::cout << "Test 4: Sin explosiones OK" << std::endl;
-        }
     }
 
-    if (ok)
-    {
-        std::cout << "=== Todos los tests de explodeAndDrop pasaron ===" << std::endl;
-    }
     return ok;
+}
+
+bool candyParseTest()
+{
+    bool ret = true;
+    for (int i = 0; i < NUM_CANDYTYPES; i++)
+        ret = ret && Candy::parse_new(i)->getType() == static_cast<CandyType>(i);
+    return ret;
 }

@@ -38,8 +38,6 @@ void Game::update(const Controller& controller)
     if (m_gameOver)
         return;
 
-   
-
     //Generar el bloque de 3 si no existe
     if (m_blockCandy[0] == nullptr)
     {
@@ -88,7 +86,13 @@ void Game::update(const Controller& controller)
         else if (controller.isDownPressed())
         {
             //Acelerar caída
-            m_y++;
+            int i = 0;
+            bool trobat = false;
+
+            while (m_board.getHeight() > i && !trobat)
+                trobat = nullptr != m_board.getCell(m_x, i++);
+
+            m_y = i - (1 + static_cast<int>(trobat));
         }
         else if (controller.isLeftPressed())
         {
@@ -135,18 +139,8 @@ void Game::update(const Controller& controller)
     {
         load("data/save.txt");
     }
-    // else if (controller.isKey3Pressed() && m_toLoad) //E
-    // {
-    //     m_board.load(m_toLoad)
-    // }
 
     // Estado Tablero
-    // Decide whether the falling block should land. The previous logic only checked the
-    // cell immediately below the block's bottom which allowed overlapping existing
-    // candies higher in the column. We now check whether moving the block down by one
-    // would cause any of its cells to overlap existing candies; if so, it must land
-    // at the current position. If the block cannot be placed at the current position
-    // because there is no free cell in the column, we mark game over.
     {
         int newY = m_y + 1;
         bool willCollide = false;
@@ -181,8 +175,6 @@ void Game::update(const Controller& controller)
             }
             else
             {
-                // Anchor the block at the current position (none of these cells should
-                // contain candies because movement checks ensure the current position is safe)
                 for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
                 {
                     if (m_y - i >= 0 && m_y - i < m_board.getHeight())
@@ -215,7 +207,6 @@ void Game::update(const Controller& controller)
 
 
     // Explosiones y tal
-    // explodeAndDrop returns a vector<Candy*> (non-owning pointers). Caller must not delete these
     std::vector<Candy*> exploded = m_board.explodeAndDrop();
     scoreUpdate(exploded);
 }
