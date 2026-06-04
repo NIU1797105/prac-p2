@@ -9,17 +9,16 @@ void SoundManager::loadMusic(const char* path)
 {
     auto data = getDataDirPath();
     m_bgMusic = Sound_LoadMusic((char*)(data + "audio/" + path).c_str(), 1);
+    m_bgMusic->bLoop = PLAY_THEN_LOOP_AT_END;
     m_bgMusic->estado = SOUND_STATE_PLAYING;
     g_current_music = m_bgMusic;
+    playSound(m_bgMusic);
 }
 
-MusicToken SoundManager::loadSound(const char* path, bool loop) const
+MusicToken SoundManager::loadSound(const char* path) const
 {
     auto data = getDataDirPath();
-    auto sound = Sound_LoadSound((char*)(data + "audio/" + path).c_str());
-    if (loop)
-        sound->bLoop = PLAY_THEN_LOOP_AT_END;
-    return sound;
+    return Sound_LoadSound((char*)(data + "audio/" + path).c_str());
 }
 
 void SoundManager::startMusic() const
@@ -27,7 +26,6 @@ void SoundManager::startMusic() const
     stopMusic();
     g_current_music = m_bgMusic;
     m_bgMusic->estado = SOUND_STATE_PLAYING;
-    g_current_music = nullptr;
 }
 
 void SoundManager::stopMusic() const
@@ -37,7 +35,19 @@ void SoundManager::stopMusic() const
     g_current_music = nullptr;
 }
 
+void SoundManager::playSound(MusicToken token, PlayOpts opts) const
+{
+    stopMusic();
+    Sound_Play(token, static_cast<int>(opts));
+    startMusic();
+}
+
 void SoundManager::playSound(MusicToken token) const
 {
     Sound_Play(token, SOUND_FORCE_RESTART);
+}
+
+void SoundManager::stopSound(MusicToken token) const
+{
+    Sound_Stop(token);
 }

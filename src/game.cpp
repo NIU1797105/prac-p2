@@ -1,5 +1,4 @@
 ﻿#include "game.h"
-// #include "private/sdl_wrapper/sound.h"
 #include "sound_mgr.h"
 #include <random>
 #include <vector>
@@ -28,9 +27,7 @@ Game::Game() : m_board(), m_gen(std::random_device{}())
     //Audio
     m_sound = SoundManager();
     m_sound.loadMusic("bg.ogg");
-    m_sound_stars = m_sound.loadSound("stars.ogg", false);
-    m_music_pause = m_sound.loadSound("beam.ogg", true);
-    m_music_croco = m_sound.loadSound("crocodile_2.ogg", true);
+    m_sound_stars = m_sound.loadSound("stars.ogg");
 }
 
 Game::~Game()
@@ -66,7 +63,7 @@ void Game::update(const Controller& controller)
 
         if (availableColumns.size() == 0)
         {
-            m_gameOver = true;
+            gameOver();
             return;
         }
 
@@ -95,11 +92,12 @@ void Game::update(const Controller& controller)
             if (m_pause)
             {
                 m_sound.stopMusic();
-                m_sound.playSound(m_music_pause);
+                m_sound.loadMusic("beam.ogg");
             }
             else
             {
-                m_sound.startMusic();
+                m_sound.stopMusic();
+                m_sound.loadMusic("bg.ogg");
             }
         }
         if (!m_pause)
@@ -181,9 +179,7 @@ void Game::update(const Controller& controller)
         {
             if (willCollide && m_y < DEFAULT_BLOCKSIZE)
             {
-                // No room to place any part of the block -> game over
-                m_gameOver = true;
-                // Clean up the falling block
+                gameOver();
                 for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
                 {
                     if (m_blockCandy[i] != nullptr)
@@ -238,8 +234,15 @@ void Game::scoreUpdate(const std::vector<Candy*>& candies) {
     if (candies.size() > 0)
     {
         m_score += 1000 * (1 << (candies.size() - MINIM_EXPLOSIO));
-        Sound_Play(m_sound_stars, SOUND_DO_NOT_RESTART_IF_ALREADY_PLAYING);
+        m_sound.playSound(m_sound_stars, PlayOpts::NO_RESTART);
     }
+}
+
+void Game::gameOver()
+{
+    m_sound.stopMusic();
+    m_sound.loadMusic("crocodile_2.ogg");
+    m_gameOver = true;
 }
 
 void drawCandy(GraphicManager& graphics, Candy* candy, int x, int y)
@@ -256,17 +259,8 @@ void Game::render(GraphicManager& graphics)
     // Implement your code here
     graphics.drawImage("img/bg_2.png", 0, 0);
 
-    // Note: the following code exhibits the main graphic library features
-    // Board: border [draw rectangles] and a single piece of candy
     const int board_size = 10;
     const int board_padding = 3;
-    /*
-    graphics.drawRectangle(
-        CANDY_IMAGE_HEIGHT * board_padding, CANDY_IMAGE_HEIGHT * board_padding,
-        CANDY_IMAGE_WIDTH * board_size,
-        CANDY_IMAGE_HEIGHT * board_size,
-        5, 150, 150, 150);
-        */
     graphics.drawImage("img/grid.png", CANDY_IMAGE_HEIGHT * board_padding, CANDY_IMAGE_HEIGHT * board_padding);
     // Board: place a candy piece
     //Board
@@ -292,12 +286,6 @@ void Game::render(GraphicManager& graphics)
         }
     }
 
-    /*
-    graphics.drawImage(Candy(CandyType::TYPE_PURPLE).getResourceName(),
-        CANDY_IMAGE_WIDTH * 3,
-        CANDY_IMAGE_HEIGHT * 3);
-        */
-        // Title [draw images]
     graphics.drawImage("img/logo_small.png", 10, 10);
     // Score and footer [draw text]
     graphics.drawText("Movement: [Up] [Down] [Left] [Right]  --  "
@@ -305,7 +293,6 @@ void Game::render(GraphicManager& graphics)
                       25, 700, 20, 100, 100, 100);
     graphics.drawText("Score: " + std::to_string(m_score), 260, 30, 70, 125, 200, 125);
 
-    #ifndef GRADESCOPE
     if (m_gameOver)
     {
         static int nFrame = 0;
@@ -316,7 +303,9 @@ void Game::render(GraphicManager& graphics)
 
         if (nFrame == 0 || nFrame == 10)
             state = !state;
-        if (state) {
+
+        if (state)
+        {
             nFrame++;
         }
         else
@@ -324,7 +313,6 @@ void Game::render(GraphicManager& graphics)
             nFrame--;
         }
     }
-    #endif
 }
 
 
@@ -336,8 +324,6 @@ void Game::run()
     const int bg_green = 255;
     const int bg_blue = 255;
     runGraphicGame(*this, screen_width, screen_height, bg_red, bg_green, bg_blue);
-
-
 }
 
 bool Game::dump(const std::string& output_path) const

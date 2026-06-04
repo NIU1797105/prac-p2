@@ -1,5 +1,14 @@
 # Práctica de Programación 2 - UAB, Grado Ingeniería Informática, 107890
 
+# Autors
+
+Guillem Larrosa Jara
+Cristina Salcedo Alvarez
+
+# Nota
+
+És probable que no compili directament a Visual Studio a causa que s'ha desenvolupat en Linux. Segurament afegir els fitxers nous al projecte seria suficient.
+
 # Ayuda primera ejecución
 
 Instrucciones para una primera prueba de humo. Sistemas testados:

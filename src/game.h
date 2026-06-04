@@ -3,7 +3,6 @@
  */
 #ifndef GAME_H
 #define GAME_H
-// #define GRADESCOPE
 #include "candy.h"
 #include "graphics.h"
 #include "controller.h"
@@ -72,6 +71,11 @@ public:
      */
     int getScore() const { return m_score; }
 
+    /**
+     * Runs game-over logic; sets internal var to true.
+     */
+    void gameOver();
+
 private:
     Board m_board;
     Candy** m_blockCandy;
@@ -85,9 +89,6 @@ private:
     bool m_pause;
     int m_score;
     SoundManager m_sound;
-    SoundManager::MusicToken m_music_bg;
     SoundManager::MusicToken m_sound_stars;
-    SoundManager::MusicToken m_music_pause;
-    SoundManager::MusicToken m_music_croco;
 };
 #endif

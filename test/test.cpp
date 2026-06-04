@@ -11,7 +11,7 @@
 
 bool test()
 {
-    std::cout << "\nRunning test suite:" << std::endl;
+    std::cout << "Running test suite:" << std::endl;
     bool allPassed = true;
     #define RUN(test) if (allPassed && !(allPassed = allPassed && (test)())) \
                             ::std::cout << "Failure: `test::" #test << "()`" << ::std::endl;

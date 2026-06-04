@@ -2,13 +2,13 @@
 #include "../test/test.h"
 #include "game.h"
 #include "signals.h"
+#include "sound_mgr.h"
 
 int main(int argc, const char* argv[])
 {
-    #ifndef GRADESCOPE
-    setup_signals();
-    #endif
     test();
+    SoundManager::SoundInit();
+    setup_signals();
     // The following code runs the graphic part
     Game game;
     if (argc > 1)
