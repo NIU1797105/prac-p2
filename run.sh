@@ -1,2 +1,2 @@
 #!/bin/bash
-cd $(dirname $0) && ./build/p2_project
+cd $(dirname $0) && ./build/p2_project $1

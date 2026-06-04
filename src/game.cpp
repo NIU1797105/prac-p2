@@ -74,33 +74,7 @@ void Game::update(const Controller& controller)
                 delete m_blockCandy[i];
             }
             int candyType = distributionCandyTypes(m_gen);
-            CandyType type;
-            switch (candyType)
-            {
-            case 0:
-                type = CandyType::TYPE_RED;
-                break;
-            case 1:
-                type = CandyType::TYPE_GREEN;
-                break;
-            case 2:
-                type = CandyType::TYPE_BLUE;
-                break;
-            case 3:
-                type = CandyType::TYPE_YELLOW;
-                break;
-            case 4:
-                type = CandyType::TYPE_PURPLE;
-                break;
-            case 5:
-                type = CandyType::TYPE_ORANGE;
-                break;
-            default:
-                type = CandyType::TYPE_RED;
-                break;
-
-            }
-            m_blockCandy[i] = new Candy(type);
+            m_blockCandy[i] = Candy::parse_new(candyType);
         }
 
     }
@@ -120,7 +94,9 @@ void Game::update(const Controller& controller)
         {
             //Mover bloque de caramelos a la izquierda
 
-            if (m_x > 0 && m_board.getCell(m_x -1, m_y) == nullptr && m_board.getCell(m_x - 1, m_y - 1) == nullptr && m_board.getCell(m_x - 1, m_y - 2) == nullptr)
+            if (m_x > 0 && m_board.getCell(m_x -1, m_y) == nullptr
+                && m_board.getCell(m_x - 1, m_y - 1) == nullptr
+                && m_board.getCell(m_x - 1, m_y - 2) == nullptr)
             {
                 m_x--;
             }
@@ -129,7 +105,10 @@ void Game::update(const Controller& controller)
         else if (controller.isRightPressed())
         {
             //Mover bloque de caramelos a la
-            if (m_x < m_board.getWidth() - 1 && m_board.getCell(m_x + 1, m_y) == nullptr && m_board.getCell(m_x + 1, m_y - 1) == nullptr && m_board.getCell(m_x + 1, m_y - 2) == nullptr)
+            if (m_x < m_board.getWidth() - 1
+                && m_board.getCell(m_x + 1, m_y) == nullptr
+                && m_board.getCell(m_x + 1, m_y - 1) == nullptr
+                && m_board.getCell(m_x + 1, m_y - 2) == nullptr)
             {
                 m_x++;
             }
@@ -150,11 +129,11 @@ void Game::update(const Controller& controller)
     if (controller.isKey2Pressed()) //W
     {
         //Guardar estado
-        dump("save.txt");
+        dump("data/save.txt");
     }
     if (controller.isKey3Pressed()) //E
     {
-        load("save.txt");
+        load("data/save.txt");
     }
     // else if (controller.isKey3Pressed() && m_toLoad) //E
     // {
@@ -368,7 +347,7 @@ bool Game::dump(const std::string& output_path) const
         else
             f << int(m_blockCandy[i]->getType()) << " ";
     }
-    f << m_score << "\n";
+    f << m_score << " " << m_gameOver << "\n";
     ret = f.good();
     f.close();
     return ret;
@@ -403,45 +382,18 @@ bool Game::load(const std::string& input_path)
     if (y < -1 || x < 0 || y > 9 || x > 9)
         return false;
 
+    m_x = x;
+    m_y = y;
 
     for (int i = 0; i < DEFAULT_BLOCKSIZE; i++)
     {
-        int type = 0;
+        int type = -1;
         f >> type;
-        CandyType Ctype;
-        switch (type)
-        {
-        case -1:
-            m_blockCandy[i] = nullptr;
-            break;
-        case 0:
-            Ctype = CandyType::TYPE_RED;
-            break;
-        case 1:
-            Ctype = CandyType::TYPE_GREEN;
-            break;
-        case 2:
-            Ctype = CandyType::TYPE_BLUE;
-            break;
-        case 3:
-            Ctype = CandyType::TYPE_YELLOW;
-            break;
-        case 4:
-            Ctype = CandyType::TYPE_PURPLE;
-            break;
-        case 5:
-            Ctype = CandyType::TYPE_ORANGE;
-            break;
-        default:
-            Ctype = CandyType::TYPE_RED;
-            break;
-
-        }
-        if (type != -1)
-            m_blockCandy[i] = new Candy(Ctype);
-       
+        m_blockCandy[i] = Candy::parse_new(type);
     }
+
     f >> m_score;
+    f >> m_gameOver;
     ret = f.good();
     f.close();
     return ret;

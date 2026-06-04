@@ -14,6 +14,15 @@ Candy::Candy()
     m_type = CandyType::COUNT;
 }
 
+Candy* Candy::parse_new(int type)
+{
+    if (type == -1)
+        return nullptr;
+    if (type >= 0 && type < static_cast<int>(CandyType::COUNT))
+        return new Candy(static_cast<CandyType>(type));
+    return nullptr;
+}
+
 CandyType Candy::getType() const
 {
     return m_type;

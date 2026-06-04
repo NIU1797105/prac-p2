@@ -12,15 +12,6 @@ int display(Candy* candy)
     return static_cast<int>(candy->getType());
 }
 
-Candy* parse(int type)
-{
-    if (type == -1)
-        return nullptr;
-    if (type >= 0 && type < static_cast<int>(CandyType::COUNT))
-        return new Candy(static_cast<CandyType>(type));
-    return nullptr;
-}
-
 Board::Board(int width, int height)
     : m_height(height), m_width(width), m_grid(nullptr)
 {
@@ -334,7 +325,7 @@ bool Board::load(const std::string& input_path)
                 m_grid = nullptr;
                 return false;
             }
-            m_grid[y][x] = parse(t);
+            m_grid[y][x] = Candy::parse_new(t);
         }
     }
 

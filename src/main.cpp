@@ -29,6 +29,9 @@ int main(int argc, const char* argv[])
 
     // The following code runs the graphic part
     Game game;
+    if (argc > 1)
+        game.load(argv[1]);
+
     // Run until ESC is pressed
     game.run();
     return 0;
