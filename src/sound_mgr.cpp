@@ -1,0 +1,43 @@
+#include "sound_mgr.h"
+#include "private/sdl_wrapper/sound.h"
+#include "util.h"
+
+using MusicToken = SoundManager::MusicToken;
+extern struct T_SOUND* g_current_music;
+
+void SoundManager::loadMusic(const char* path)
+{
+    auto data = getDataDirPath();
+    m_bgMusic = Sound_LoadMusic((char*)(data + "audio/" + path).c_str(), 1);
+    m_bgMusic->estado = SOUND_STATE_PLAYING;
+    g_current_music = m_bgMusic;
+}
+
+MusicToken SoundManager::loadSound(const char* path, bool loop) const
+{
+    auto data = getDataDirPath();
+    auto sound = Sound_LoadSound((char*)(data + "audio/" + path).c_str());
+    if (loop)
+        sound->bLoop = PLAY_THEN_LOOP_AT_END;
+    return sound;
+}
+
+void SoundManager::startMusic() const
+{
+    stopMusic();
+    g_current_music = m_bgMusic;
+    m_bgMusic->estado = SOUND_STATE_PLAYING;
+    g_current_music = nullptr;
+}
+
+void SoundManager::stopMusic() const
+{
+    if (g_current_music)
+        Sound_Pause(m_bgMusic);
+    g_current_music = nullptr;
+}
+
+void SoundManager::playSound(MusicToken token) const
+{
+    Sound_Play(token, SOUND_FORCE_RESTART);
+}

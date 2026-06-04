@@ -3,7 +3,7 @@
  */
 #ifndef GAME_H
 #define GAME_H
-#define GRADESCOPE
+// #define GRADESCOPE
 #include "candy.h"
 #include "graphics.h"
 #include "controller.h"
@@ -11,6 +11,7 @@
 #include <random>
 #include <vector>
 #include "sound.h"
+#include "sound_mgr.h"
 
 const int DEFAULT_BLOCKSIZE = 3;
 const int NUM_CANDYTYPES = 6;
@@ -83,9 +84,10 @@ private:
     bool m_gameOver;
     bool m_pause;
     int m_score;
-    T_SOUND* m_music_bg;
-    T_SOUND* m_sound_stars;
-    T_SOUND* m_music_pause;
-    T_SOUND* m_music_croco;
+    SoundManager m_sound;
+    SoundManager::MusicToken m_music_bg;
+    SoundManager::MusicToken m_sound_stars;
+    SoundManager::MusicToken m_music_pause;
+    SoundManager::MusicToken m_music_croco;
 };
 #endif

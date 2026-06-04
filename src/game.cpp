@@ -1,4 +1,6 @@
 ﻿#include "game.h"
+// #include "private/sdl_wrapper/sound.h"
+#include "sound_mgr.h"
 #include <random>
 #include <vector>
 #include "graphics.h"
@@ -6,7 +8,6 @@
 #include "board.h"
 #include <fstream>
 
-extern struct T_SOUND* g_current_music;
 const int SPEED_GAME = 30;
 
 Game::Game() : m_board(), m_gen(std::random_device{}())
@@ -25,13 +26,11 @@ Game::Game() : m_board(), m_gen(std::random_device{}())
     m_score = 0;
 
     //Audio
-    m_music_bg = Sound_LoadMusic((char*)"../../data/audio/bg.ogg", 1);
-    m_sound_stars = Sound_LoadSound((char*)"../../data/audio/stars.ogg");
-    m_music_pause = Sound_LoadSound((char*)"../../data/audio/beam.ogg");
-    m_music_croco = Sound_LoadSound((char*)"../../data/audio/crocodile_2.ogg");
-    m_music_pause->bLoop = PLAY_THEN_LOOP_AT_END;
-    m_music_croco->bLoop = PLAY_THEN_LOOP_AT_END;
-    m_music_bg->estado = SOUND_STATE_PLAYING;
+    m_sound = SoundManager();
+    m_sound.loadMusic("bg.ogg");
+    m_sound_stars = m_sound.loadSound("stars.ogg", false);
+    m_music_pause = m_sound.loadSound("beam.ogg", true);
+    m_music_croco = m_sound.loadSound("crocodile_2.ogg", true);
 }
 
 Game::~Game()
@@ -95,15 +94,12 @@ void Game::update(const Controller& controller)
             m_pause = !m_pause;
             if (m_pause)
             {
-                Sound_Pause(m_music_bg);
-                g_current_music = NULL;
-                Sound_Play(m_music_pause, SOUND_FORCE_RESTART);
+                m_sound.stopMusic();
+                m_sound.playSound(m_music_pause);
             }
             else
             {
-                Sound_Stop(m_music_pause);
-                g_current_music = m_music_bg;
-                m_music_bg->estado = SOUND_STATE_PLAYING;
+                m_sound.startMusic();
             }
         }
         if (!m_pause)
@@ -152,8 +148,6 @@ void Game::update(const Controller& controller)
                 m_blockCandy[i] = m_blockCandy[i + 1];
             }
             m_blockCandy[DEFAULT_BLOCKSIZE - 1] = tmp;
-
-
         }
     }
     if (controller.isKey2Pressed()) //W
@@ -295,18 +289,6 @@ void Game::render(GraphicManager& graphics)
         {
             //Pintalo
             drawCandy(graphics, m_blockCandy[i], m_x, m_y - i);
-
-        }
-        else
-        {
-            if (m_y - i > m_board.getHeight())
-            {
-                if (m_blockCandy[i] != nullptr)
-                {
-                    delete m_blockCandy[i];
-                    m_blockCandy[i] = nullptr;
-                }
-            }
         }
     }
 
@@ -319,11 +301,11 @@ void Game::render(GraphicManager& graphics)
     graphics.drawImage("img/logo_small.png", 10, 10);
     // Score and footer [draw text]
     graphics.drawText("Movement: [Up] [Down] [Left] [Right]  --  "
-        "Buttons: [Q] [W] [E]  --  Exit [ESC]",
-        25, 700, 20, 100, 100, 100);
-    graphics.drawText("Score: " + std::to_string(m_score),260, 30, 70, 125, 200, 125);
+                      "Buttons: [Q] [W] [E]  --  Exit [ESC]",
+                      25, 700, 20, 100, 100, 100);
+    graphics.drawText("Score: " + std::to_string(m_score), 260, 30, 70, 125, 200, 125);
 
-#ifndef GRADESCOPE
+    #ifndef GRADESCOPE
     if (m_gameOver)
     {
         static int nFrame = 0;
@@ -336,12 +318,13 @@ void Game::render(GraphicManager& graphics)
             state = !state;
         if (state) {
             nFrame++;
-}
-        else {
+        }
+        else
+        {
             nFrame--;
         }
     }
-#endif
+    #endif
 }
 
 
@@ -464,3 +447,4 @@ bool Game::operator==(const Game& other) const
     
     return ret;
 }
+

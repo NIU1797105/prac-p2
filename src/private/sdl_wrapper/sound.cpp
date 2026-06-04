@@ -33,7 +33,6 @@ signed short* g_music_buffer;
 signed short* g_sound_buffer_queue[MAX_SIMULTANEOUS_SOUND_CHANNELS_FOR_SOUND_EFFECTS];
 
 struct T_SOUND* g_current_music = NULL;
-//struct T_SOUND *g_current_sound = NULL ;
 
 int g_samples;
 
